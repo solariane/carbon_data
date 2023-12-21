@@ -66,14 +66,14 @@ foreach($rows as $countryCode=>$d) {
 		$valOfInterest = array_column(array_slice($d, 0, $idx+1, true), 'owid_co2_luc'); // take whole data
 		$size100 = count($valOfInterest100);
 		$size = count($valOfInterest);
-		$rows[$countryCode][$idx]['cumulative'] =  array_sum($valOfInterest); 
+		$rows[$countryCode][$idx]['cumulativeOWID'] =  array_sum($valOfInterest); 
 		$rows[$countryCode][$idx]['cumulative100'] =  array_sum($valOfInterest100); 
 		$cumulativeWithAbsorption = array_map(function($val, $key)  use ($size, $captureRate){ 
 			return $val*((1-$captureRate)**($size-$key));
 		}, $valOfInterest, array_keys($valOfInterest));
 		$rows[$countryCode][$idx]['cumulativeAbsorption'] =  array_sum($cumulativeWithAbsorption);
 		// did previous computation was necessary ? a better approximation of the process at hand ? not sure…
-		$rows[$countryCode][$idx]['cumulativeAbsorptionFix'] = $source['owid_co2_luc']+(isset($rows[$countryCode][$idx-1])?(1-$captureRate)*$rows[$countryCode][$idx-1]['cumulativeAbsorptionFasterComputation']:0);
+		$rows[$countryCode][$idx]['cumulativeAbsorptionFix'] = $source['owid_co2_luc']+(isset($rows[$countryCode][$idx-1])?(1-$captureRate)*$rows[$countryCode][$idx-1]['cumulativeAbsorptionFix']:0);
 		$rows[$countryCode][$idx]['carbonLand'] =  $source['Land']?((10**6) *$rows[$countryCode][$idx]['cumulativeAbsorption'] )/ $source['Land']:0;
 	}
 	if (!isset($final))
