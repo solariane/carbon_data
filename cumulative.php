@@ -28,7 +28,8 @@ foreach ($f as $row) {
     // Country isoCode : 2
 	// year  : 1
 	// co2_including_luc  : 10
-	if ($row[2])
+	// to be able to compute to data using global area…
+// 	if ($row[2])
             $rows[$row[2].'-'.$row[0]][] = [
             	'Country'=> $row[0],
             	'Year'=> $row[1],
@@ -53,7 +54,7 @@ foreach ($ff as $landrow) {
 		}
 	} 
 }
-
+$final = null;
 $sequenceSize = 100;
 $captureRate = 0.015; // after hundred year ~ 20% still there
 foreach($rows as $countryCode=>$d) { 
@@ -75,8 +76,11 @@ foreach($rows as $countryCode=>$d) {
 		$rows[$countryCode][$idx]['cumulativeAbsorptionFix'] = $source['owid_co2_luc']+(isset($rows[$countryCode][$idx-1])?(1-$captureRate)*$rows[$countryCode][$idx-1]['cumulativeAbsorptionFasterComputation']:0);
 		$rows[$countryCode][$idx]['carbonLand'] =  $source['Land']?((10**6) *$rows[$countryCode][$idx]['cumulativeAbsorption'] )/ $source['Land']:0;
 	}
+	if (!isset($final))
+		$final[0] = array_keys($rows[$countryCode][$idx]);
 	$final[] = $rows[$countryCode][$idx]; // ['country'=>$countryCode]+
 }
+// print_r($final);exit();
 $o = new SplFileObject($dest, 'w');
 foreach ($rows as $k=>$data) { 
 	if (!$k)
@@ -88,6 +92,20 @@ foreach ($rows as $k=>$data) {
 			$o->fputcsv($fields);// (['Country'=>$country]) +
 	}
 }
+
+
+$o = new SplFileObject(str_replace('.csv', '.final.csv',$dest), 'w');
+foreach ($final as $k=>$data) { 
+// 	if (!$k)
+// 		$o->fputcsv($data);
+// 	else
+// 		$country = trim(substr($k, strpos($k, '-')+1));
+// 	foreach ($data as $fields) {
+// 		if ($k)
+			$o->fputcsv($data);// (['Country'=>$country]) +
+// 	}
+}
+unset($final[0]);
 $sortColum = array_column($final, 'cumulative');
 array_multisort($sortColum, SORT_DESC, $final);
 echo "cumulative\n".str_repeat("-", strlen("cumulative"))."\n";
